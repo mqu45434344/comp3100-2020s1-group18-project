@@ -37,7 +37,7 @@ class JobSubmission:
     def from_received_line(cls, line: str):
         parts = line.split()
         if parts[0] != 'JOBN':
-            raise ValueError
+            raise ValueError(line)
 
         return cls(
             submit_time=int(parts[1]),
@@ -81,11 +81,14 @@ class JobScheduler:
     def __init__(self,
         address: str,
         port: int,
+        *,
         dispatch_policy: Optional[JobDispatchPolicy] = None,
     ) -> None:
         self._sock = sock = socket.socket()
         sock.connect((address, port))
         sock.settimeout(1)
+
+        self.newlines = False
 
         if dispatch_policy is None:
             dispatch_policy = AllToLargest()
@@ -97,11 +100,15 @@ class JobScheduler:
         self._sock.close()
 
     def send(self, message: str) -> None:
+        if self.newlines:
+            message += '\n'
         data = message.encode()
         self._sock.send(data)
 
     def receive(self) -> str:
         data = self._sock.recv(4096)
+        if self.newlines:
+            data = data[:-1]
         return data.decode()
 
     def parse_for_servers(self, filename: str) -> List[Server]:
@@ -128,6 +135,12 @@ class JobScheduler:
         self.close()
 
 
-scheduler = JobScheduler('127.0.0.1', 50000)
-if not sys.flags.interactive:
-    scheduler.run()
+if __name__ == '__main__':
+    args = sys.argv[1:]
+    args_set = set(args)
+
+    scheduler = JobScheduler('127.0.0.1', 50000)
+    scheduler.newlines = '-n' in args_set
+
+    if not sys.flags.interactive:
+        scheduler.run()
