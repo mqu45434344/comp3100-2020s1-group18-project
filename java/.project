@@ -1,14 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <projectDescription>
-  <name>dsclient</name>
-  <comment/>
-  <projects>&#xD;
-    </projects>
   <buildSpec>
     <buildCommand>
       <name>org.eclipse.jdt.core.javabuilder</name>
-      <arguments>&#xD;
-            </arguments>
     </buildCommand>
   </buildSpec>
   <natures>
