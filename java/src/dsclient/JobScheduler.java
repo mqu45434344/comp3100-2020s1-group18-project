@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -30,6 +31,18 @@ class Server {
     public int coreCount;
     public int memory;
     public int disk;
+
+    public static Server fromElement(Element el) {
+        return new Server(
+            el.getAttribute("type"),
+            Integer.parseInt(el.getAttribute("limit")),
+            Integer.parseInt(el.getAttribute("bootupTime")),
+            Double.parseDouble(el.getAttribute("rate")),
+            Integer.parseInt(el.getAttribute("coreCount")),
+            Integer.parseInt(el.getAttribute("memory")),
+            Integer.parseInt(el.getAttribute("disk"))
+        );
+    }
 
     Server(
         String type,
@@ -60,6 +73,10 @@ class JobSubmission {
 
     public static JobSubmission fromReceivedLine(String line) {
         String[] parts = line.split("\\s+");
+        if (!parts[0].equals("JOBN")) {
+            throw new IllegalArgumentException();
+        }
+
         return new JobSubmission(
             Integer.parseInt(parts[1]),
             Integer.parseInt(parts[2]),
@@ -113,7 +130,8 @@ class AllToLargest implements JobDispatchPolicy {
 
 public class JobScheduler {
     public JobDispatchPolicy dispatchPolicy;
-    public List<Server> servers;
+    public boolean newlines = false;
+    public List<Server> servers = new ArrayList<>();
 
     private Socket sock;
     private OutputStream sockOutput;
@@ -126,8 +144,10 @@ public class JobScheduler {
         sockInput = sock.getInputStream();
 
         this.dispatchPolicy = dispatchPolicy;
+    }
 
-        servers = new ArrayList<Server>();
+    JobScheduler(String address, int port) throws IOException {
+        this(address, port, new AllToLargest());
     }
 
     public void close() throws IOException {
@@ -135,6 +155,9 @@ public class JobScheduler {
     }
 
     public void send(String message) throws IOException {
+        if (newlines) {
+            message += "\n";
+        }
         byte[] data = message.getBytes();
         sockOutput.write(data);
         sockOutput.flush();
@@ -142,8 +165,11 @@ public class JobScheduler {
 
     public String receive() throws IOException {
         byte[] data = new byte[4096];
-        int bytesRead = sockInput.read(data);
-        return new String(data, 0, bytesRead, StandardCharsets.UTF_8);
+        int length = sockInput.read(data);
+        if (newlines) {
+            length -= 1;
+        }
+        return new String(data, 0, length, StandardCharsets.UTF_8);
     }
 
     public String inquire(String message) throws IOException {
@@ -163,17 +189,7 @@ public class JobScheduler {
         NodeList serversNodeList = element.getElementsByTagName("server");
         for (int i = 0; i < serversNodeList.getLength(); i++) {
             Element serverElement = (Element) serversNodeList.item(i);
-            servers.add(
-                new Server(
-                    serverElement.getAttribute("type"),
-                    Integer.parseInt(serverElement.getAttribute("limit")),
-                    Integer.parseInt(serverElement.getAttribute("bootupTime")),
-                    Double.parseDouble(serverElement.getAttribute("rate")),
-                    Integer.parseInt(serverElement.getAttribute("coreCount")),
-                    Integer.parseInt(serverElement.getAttribute("memory")),
-                    Integer.parseInt(serverElement.getAttribute("disk"))
-                )
-            );
+            servers.add(Server.fromElement(serverElement));
         }
         return servers;
     }
@@ -198,7 +214,10 @@ class Main {
     public static void main(String[] args)
             throws IOException, ParserConfigurationException, SAXException
     {
-        JobScheduler scheduler = new JobScheduler("127.0.0.1", 50000, new AllToLargest());
+        Set<String> argSet = Set.of(args);
+
+        JobScheduler scheduler = new JobScheduler("127.0.0.1", 50000);
+        scheduler.newlines = argSet.contains("-n");
         scheduler.run();
     }
 }
