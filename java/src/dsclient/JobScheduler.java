@@ -99,15 +99,13 @@ class AllToLargest implements JobDispatchPolicy {
         ).type;
 
         while (true) {
-            scheduler.send("REDY");
-            String incoming = scheduler.receive();
+            String incoming = scheduler.inquire("REDY");
             if (incoming.equals("NONE")) {
                 break;
             }
 
             JobSubmission jobn = JobSubmission.fromReceivedLine(incoming);
-            scheduler.send(String.format("SCHD %d %s 0", jobn.jobId, largestServerType));
-            scheduler.receive();
+            scheduler.inquire(String.format("SCHD %d %s 0", jobn.jobId, largestServerType));
         }
     }
 }
@@ -148,6 +146,11 @@ public class JobScheduler {
         return new String(data, 0, bytesRead, StandardCharsets.UTF_8);
     }
 
+    public String inquire(String message) throws IOException {
+        send(message);
+        return receive();
+    }
+
     public List<Server> parseForServers(String filename)
             throws ParserConfigurationException, FileNotFoundException, SAXException, IOException
     {
@@ -178,17 +181,14 @@ public class JobScheduler {
     public void run()
             throws IOException, ParserConfigurationException, SAXException
     {
-        send("HELO");
-        receive();
-        send("AUTH " + System.getProperty("user.name"));
-        receive();
+        inquire("HELO");
+        inquire("AUTH " + System.getProperty("user.name"));
 
         servers.addAll(parseForServers("system.xml"));
 
         dispatchPolicy.dispatch(this);
 
-        send("QUIT");
-        receive();
+        inquire("QUIT");
         close();
     }
 }

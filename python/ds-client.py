@@ -67,14 +67,12 @@ class AllToLargest(JobDispatchPolicy):
         ).type
 
         while True:
-            scheduler.send('REDY')
-            incoming = scheduler.receive()
+            incoming = scheduler.inquire('REDY')
             if incoming == 'NONE':
                 break
 
             jobn = JobSubmission.from_received_line(incoming)
-            scheduler.send(f"SCHD {jobn.job_id} {largest_server_type} 0")
-            scheduler.receive()
+            scheduler.inquire(f"SCHD {jobn.job_id} {largest_server_type} 0")
 
 
 class JobScheduler:
@@ -111,6 +109,10 @@ class JobScheduler:
             data = data[:-1]
         return data.decode()
 
+    def inquire(self, message: str) -> str:
+        self.send(message)
+        return self.receive()
+
     def parse_for_servers(self, filename: str) -> List[Server]:
         tree = ET.parse(filename)
         root = tree.getroot()
@@ -121,17 +123,14 @@ class JobScheduler:
         return servers
 
     def run(self) -> None:
-        self.send('HELO')
-        self.receive()
-        self.send('AUTH ' + getuser())
-        self.receive()
+        self.inquire('HELO')
+        self.inquire('AUTH ' + getuser())
 
         self.servers.extend(self.parse_for_servers('system.xml'))
 
         self.dispatch_policy.dispatch(self)
 
-        self.send("QUIT")
-        self.receive()
+        self.inquire("QUIT")
         self.close()
 
 
