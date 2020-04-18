@@ -1,4 +1,6 @@
 
+*mq comp3100 2020s1*
+
 # Job Scheduling Simulator
 
 **Group 18**
@@ -22,3 +24,15 @@
 5. Run the server: `./ds-server -c config_simple1.xml &`
 
 6. Run the client: `java -jar ds-client.jar`
+
+### Command line steps
+
+```shell
+tar xf ds-sim.tar
+(cd java/ && make)
+cp java/bin/ds-client.jar ds-sim/
+cd ds-sim/
+make
+./ds-server -c config_simple1.xml &
+java -jar ds-client.jar
+```
