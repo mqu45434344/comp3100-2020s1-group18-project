@@ -150,6 +150,23 @@ public class JobScheduler {
         this(address, port, new AllToLargest());
     }
 
+    public static List<Server> parseForServers(String filename)
+            throws ParserConfigurationException, FileNotFoundException, SAXException, IOException
+    {
+        DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
+        Document document = docBuilder.parse(filename);
+
+        List<Server> servers = new ArrayList<>();
+        Element element = (Element) document.getElementsByTagName("servers").item(0);
+        NodeList serversNodeList = element.getElementsByTagName("server");
+        for (int i = 0; i < serversNodeList.getLength(); i++) {
+            Element serverElement = (Element) serversNodeList.item(i);
+            servers.add(Server.fromElement(serverElement));
+        }
+        return servers;
+    }
+
     public void close() throws IOException {
         sock.close();
     }
@@ -177,21 +194,11 @@ public class JobScheduler {
         return receive();
     }
 
-    public List<Server> parseForServers(String filename)
-            throws ParserConfigurationException, FileNotFoundException, SAXException, IOException
+    public void readServers()
+            throws ParserConfigurationException, FileNotFoundException, SAXException,
+                IOException
     {
-        DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-        Document document = docBuilder.parse(filename);
-
-        List<Server> servers = new ArrayList<>();
-        Element element = (Element) document.getElementsByTagName("servers").item(0);
-        NodeList serversNodeList = element.getElementsByTagName("server");
-        for (int i = 0; i < serversNodeList.getLength(); i++) {
-            Element serverElement = (Element) serversNodeList.item(i);
-            servers.add(Server.fromElement(serverElement));
-        }
-        return servers;
+        servers.addAll(parseForServers("system.xml"));
     }
 
     public void run()
@@ -199,8 +206,7 @@ public class JobScheduler {
     {
         inquire("HELO");
         inquire("AUTH " + System.getProperty("user.name"));
-
-        servers.addAll(parseForServers("system.xml"));
+        readServers();
 
         dispatchPolicy.dispatch(this);
 

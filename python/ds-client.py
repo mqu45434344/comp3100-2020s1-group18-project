@@ -1,6 +1,6 @@
 #/usr/bin/env python3.7
 from __future__ import annotations
-from typing import Optional, Mapping, Any, List
+from typing import TypeVar, Type, Optional, Mapping, Any, List
 
 import sys
 import socket
@@ -11,8 +11,12 @@ from xml.etree import ElementTree as ET
 
 @dataclass
 class Server:
+    # system.xml
+
+    TServer = TypeVar('TServer', bound='Server')
+
     @classmethod
-    def from_xml_elem_attr_dict(cls, data: Mapping[str, Any]):
+    def from_xml_elem_attr_dict(cls: Type[TServer], data: Mapping[str, Any]) -> TServer:
         return cls(
             type=data['type'],
             limit=int(data['limit']),
@@ -33,8 +37,12 @@ class Server:
 
 @dataclass
 class JobSubmission:
+    # JOBN
+
+    TJobSubmission = TypeVar('TJobSubmission', bound='JobSubmission')
+
     @classmethod
-    def from_received_line(cls, line: str):
+    def from_received_line(cls: Type[TJobSubmission], line: str) -> TJobSubmission:
         parts = line.split()
         if parts[0] != 'JOBN':
             raise ValueError(line)
@@ -76,6 +84,16 @@ class AllToLargest(JobDispatchPolicy):
 
 
 class JobScheduler:
+    @staticmethod
+    def parse_for_servers(filename: str) -> List[Server]:
+        tree = ET.parse(filename)
+        root = tree.getroot()
+        servers = []
+        for elem in root.findall('servers/server'):
+            server = Server.from_xml_elem_attr_dict(elem.attrib)
+            servers.append(server)
+        return servers
+
     def __init__(self,
         address: str,
         port: int,
@@ -113,20 +131,13 @@ class JobScheduler:
         self.send(message)
         return self.receive()
 
-    def parse_for_servers(self, filename: str) -> List[Server]:
-        tree = ET.parse(filename)
-        root = tree.getroot()
-        servers = []
-        for elem in root.findall('servers/server'):
-            server = Server.from_xml_elem_attr_dict(elem.attrib)
-            servers.append(server)
-        return servers
+    def read_servers(self) -> None:
+        self.servers.extend(self.parse_for_servers('system.xml'))
 
     def run(self) -> None:
         self.inquire('HELO')
         self.inquire('AUTH ' + getuser())
-
-        self.servers.extend(self.parse_for_servers('system.xml'))
+        self.read_servers()
 
         self.dispatch_policy.dispatch(self)
 
