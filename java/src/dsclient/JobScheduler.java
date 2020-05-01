@@ -23,7 +23,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 
-class Server {
+class ServerType {
     public String type;
     public int limit;
     public int bootupTime;
@@ -32,8 +32,8 @@ class Server {
     public int memory;
     public int disk;
 
-    public static Server fromElement(Element el) {
-        return new Server(
+    public static ServerType fromElement(Element el) {
+        return new ServerType(
             el.getAttribute("type"),
             Integer.parseInt(el.getAttribute("limit")),
             Integer.parseInt(el.getAttribute("bootupTime")),
@@ -44,7 +44,7 @@ class Server {
         );
     }
 
-    Server(
+    ServerType(
         String type,
         int limit,
         int bootupTime,
@@ -65,7 +65,7 @@ class Server {
 
 class JobSubmission {
     public int submitTime;
-    public int jobId;
+    public int id;
     public int estimatedRuntime;
     public int coreCount;
     public int memory;
@@ -89,14 +89,14 @@ class JobSubmission {
 
     JobSubmission(
         int submitTime,
-        int jobId,
+        int id,
         int estimatedRuntime,
         int coreCount,
         int memory,
         int disk
     ) {
         this.submitTime = submitTime;
-        this.jobId = jobId;
+        this.id = id;
         this.estimatedRuntime = estimatedRuntime;
         this.coreCount = coreCount;
         this.memory = memory;
@@ -122,7 +122,7 @@ class AllToLargest implements JobDispatchPolicy {
             }
 
             JobSubmission jobn = JobSubmission.fromReceivedLine(incoming);
-            scheduler.inquire(String.format("SCHD %d %s 0", jobn.jobId, largestServerType));
+            scheduler.inquire(String.format("SCHD %d %s 0", jobn.id, largestServerType));
         }
     }
 }
@@ -131,7 +131,7 @@ class AllToLargest implements JobDispatchPolicy {
 public class JobScheduler {
     public JobDispatchPolicy dispatchPolicy;
     public boolean newlines = false;
-    public List<Server> servers = new ArrayList<>();
+    public List<ServerType> servers = new ArrayList<>();
 
     private Socket sock;
     private OutputStream sockOutput;
@@ -150,19 +150,19 @@ public class JobScheduler {
         this(address, port, new AllToLargest());
     }
 
-    public static List<Server> parseForServers(String filename)
+    public static List<ServerType> parseForServerTypes(String filename)
             throws ParserConfigurationException, FileNotFoundException, SAXException, IOException
     {
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
         Document document = docBuilder.parse(filename);
 
-        List<Server> servers = new ArrayList<>();
+        List<ServerType> servers = new ArrayList<>();
         Element element = (Element) document.getElementsByTagName("servers").item(0);
         NodeList serversNodeList = element.getElementsByTagName("server");
         for (int i = 0; i < serversNodeList.getLength(); i++) {
             Element serverElement = (Element) serversNodeList.item(i);
-            servers.add(Server.fromElement(serverElement));
+            servers.add(ServerType.fromElement(serverElement));
         }
         return servers;
     }
@@ -194,11 +194,11 @@ public class JobScheduler {
         return receive();
     }
 
-    public void readServers()
+    public void readSystemXml()
             throws ParserConfigurationException, FileNotFoundException, SAXException,
                 IOException
     {
-        servers.addAll(parseForServers("system.xml"));
+        servers.addAll(parseForServerTypes("system.xml"));
     }
 
     public void run()
@@ -206,7 +206,7 @@ public class JobScheduler {
     {
         inquire("HELO");
         inquire("AUTH " + System.getProperty("user.name"));
-        readServers();
+        readSystemXml();
 
         dispatchPolicy.dispatch(this);
 

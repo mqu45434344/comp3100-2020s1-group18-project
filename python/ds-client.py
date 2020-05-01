@@ -10,13 +10,13 @@ from xml.etree import ElementTree as ET
 
 
 @dataclass
-class Server:
+class ServerType:
     # system.xml
 
-    TServer = TypeVar('TServer', bound='Server')
+    TServerType = TypeVar('TServerType', bound='ServerType')
 
     @classmethod
-    def from_xml_elem_attr_dict(cls: Type[TServer], data: Mapping[str, Any]) -> TServer:
+    def from_xml_elem_attr_dict(cls: Type[TServerType], data: Mapping[str, Any]) -> TServerType:
         return cls(
             type=data['type'],
             limit=int(data['limit']),
@@ -49,7 +49,7 @@ class JobSubmission:
 
         return cls(
             submit_time=int(parts[1]),
-            job_id=int(parts[2]),
+            id=int(parts[2]),
             estimated_runtime=int(parts[3]),
             core_count=int(parts[4]),
             memory=int(parts[5]),
@@ -57,7 +57,7 @@ class JobSubmission:
         )
 
     submit_time: int
-    job_id: int
+    id: int
     estimated_runtime: int
     core_count: int
     memory: int
@@ -80,17 +80,17 @@ class AllToLargest(JobDispatchPolicy):
                 break
 
             jobn = JobSubmission.from_received_line(incoming)
-            scheduler.inquire(f"SCHD {jobn.job_id} {largest_server_type} 0")
+            scheduler.inquire(f"SCHD {jobn.id} {largest_server_type} 0")
 
 
 class JobScheduler:
     @staticmethod
-    def parse_for_servers(filename: str) -> List[Server]:
+    def parse_for_server_types(filename: str) -> List[ServerType]:
         tree = ET.parse(filename)
         root = tree.getroot()
         servers = []
         for elem in root.findall('servers/server'):
-            server = Server.from_xml_elem_attr_dict(elem.attrib)
+            server = ServerType.from_xml_elem_attr_dict(elem.attrib)
             servers.append(server)
         return servers
 
@@ -110,7 +110,7 @@ class JobScheduler:
             dispatch_policy = AllToLargest()
         self.dispatch_policy = dispatch_policy
 
-        self.servers: List[Server] = []
+        self.servers: List[ServerType] = []
 
     def close(self) -> None:
         self._sock.close()
@@ -131,13 +131,13 @@ class JobScheduler:
         self.send(message)
         return self.receive()
 
-    def read_servers(self) -> None:
-        self.servers.extend(self.parse_for_servers('system.xml'))
+    def read_system_xml(self) -> None:
+        self.servers.extend(self.parse_for_server_types('system.xml'))
 
     def run(self) -> None:
         self.inquire('HELO')
         self.inquire('AUTH ' + getuser())
-        self.read_servers()
+        self.read_system_xml()
 
         self.dispatch_policy.dispatch(self)
 
