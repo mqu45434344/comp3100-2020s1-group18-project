@@ -194,11 +194,18 @@ public class JobScheduler {
         return receive();
     }
 
-    public void readSystemXml()
-            throws ParserConfigurationException, FileNotFoundException, SAXException,
-                IOException
+    public void readSystemXml(String filename)
+            throws ParserConfigurationException, FileNotFoundException,
+                SAXException, IOException
     {
-        servers.addAll(parseForServerTypes("system.xml"));
+        servers.addAll(parseForServerTypes(filename));
+    }
+
+    public void readSystemXml()
+            throws ParserConfigurationException, FileNotFoundException,
+                SAXException, IOException
+    {
+        readSystemXml("system.xml");
     }
 
     public void run()

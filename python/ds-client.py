@@ -131,8 +131,8 @@ class JobScheduler:
         self.send(message)
         return self.receive()
 
-    def read_system_xml(self) -> None:
-        self.servers.extend(self.parse_for_server_types('system.xml'))
+    def read_system_xml(self, filename: str = 'system.xml') -> None:
+        self.servers.extend(self.parse_for_server_types(filename))
 
     def run(self) -> None:
         self.inquire('HELO')
