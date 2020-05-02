@@ -8,10 +8,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -22,187 +19,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-
-class ServerType {
-    public String type;
-    public int limit;
-    public int bootupTime;
-    public double rate;
-    public int coreCount;
-    public int memory;
-    public int disk;
-
-    public static ServerType fromElement(Element el) {
-        return new ServerType(
-            el.getAttribute("type"),
-            Integer.parseInt(el.getAttribute("limit")),
-            Integer.parseInt(el.getAttribute("bootupTime")),
-            Double.parseDouble(el.getAttribute("rate")),
-            Integer.parseInt(el.getAttribute("coreCount")),
-            Integer.parseInt(el.getAttribute("memory")),
-            Integer.parseInt(el.getAttribute("disk"))
-        );
-    }
-
-    ServerType(
-        String type,
-        int limit,
-        int bootupTime,
-        double rate,
-        int coreCount,
-        int memory,
-        int disk
-    ) {
-        this.type = type;
-        this.limit = limit;
-        this.bootupTime = bootupTime;
-        this.rate = rate;
-        this.coreCount = coreCount;
-        this.memory = memory;
-        this.disk = disk;
-    }
-}
-
-class JobSubmission {
-    public int submitTime;
-    public int id;
-    public int estimatedRuntime;
-    public int coreCount;
-    public int memory;
-    public int disk;
-
-    public static JobSubmission fromReceivedLine(String line) {
-        String[] parts = line.split("\\s+");
-        if (!parts[0].equals("JOBN")) {
-            throw new IllegalArgumentException();
-        }
-
-        return new JobSubmission(
-            Integer.parseInt(parts[1]),
-            Integer.parseInt(parts[2]),
-            Integer.parseInt(parts[3]),
-            Integer.parseInt(parts[4]),
-            Integer.parseInt(parts[5]),
-            Integer.parseInt(parts[6])
-        );
-    }
-
-    JobSubmission(
-        int submitTime,
-        int id,
-        int estimatedRuntime,
-        int coreCount,
-        int memory,
-        int disk
-    ) {
-        this.submitTime = submitTime;
-        this.id = id;
-        this.estimatedRuntime = estimatedRuntime;
-        this.coreCount = coreCount;
-        this.memory = memory;
-        this.disk = disk;
-    }
-}
-
-class Resource {
-    public String type;
-    public int id;
-    public int state;
-    public int availableTime;
-    public int coreCount;
-    public int memory;
-    public int disk;
-
-    public static Resource fromReceivedLine(String line) {
-        String[] parts = line.split("\\s+");
-        return new Resource(
-            parts[0],
-            Integer.parseInt(parts[1]),
-            Integer.parseInt(parts[2]),
-            Integer.parseInt(parts[3]),
-            Integer.parseInt(parts[4]),
-            Integer.parseInt(parts[5]),
-            Integer.parseInt(parts[6])
-        );
-    }
-
-    Resource(
-        String type,
-        int id,
-        int state,
-        int availableTime,
-        int coreCount,
-        int memory,
-        int disk
-    ) {
-        this.type = type;
-        this.id = id;
-        this.state = state;
-        this.availableTime = availableTime;
-        this.coreCount = coreCount;
-        this.memory = memory;
-        this.disk = disk;
-    }
-}
-
-
-interface JobDispatchPolicy {
-    public void dispatch(JobScheduler scheduler) throws IOException;
-}
-
-class AllToLargest implements JobDispatchPolicy {
-    public void dispatch(JobScheduler scheduler) throws IOException {
-        String largestServerType = Collections.max(
-            scheduler.servers, Comparator.comparing(srv -> srv.coreCount)
-        ).type;
-
-        while (true) {
-            String incoming = scheduler.inquire("REDY");
-            if (incoming.equals("NONE")) {
-                break;
-            }
-
-            JobSubmission job = JobSubmission.fromReceivedLine(incoming);
-            scheduler.inquire(String.format("SCHD %d %s 0", job.id, largestServerType));
-        }
-    }
-}
-
-class FirstAvailableWithSufficientResources implements JobDispatchPolicy {
-    public void dispatch(JobScheduler scheduler) throws IOException {
-        String largestServerType = Collections.max(
-            scheduler.servers, Comparator.comparing(srv -> srv.coreCount)
-        ).type;
-
-        while (true) {
-            String incoming = scheduler.inquire("REDY");
-            if (incoming.equals("NONE")) {
-                break;
-            }
-
-            JobSubmission job = JobSubmission.fromReceivedLine(incoming);
-
-            scheduler.inquire(String.format("RESC Avail %d %d %d", job.coreCount, job.memory, job.disk));
-            incoming = scheduler.inquire("OK");
-
-            if (incoming.equals(".")) {
-                // No server available with sufficient resources.
-                // Fall back to the largest server type with ID 0.
-                scheduler.inquire(String.format("SCHD %d %s 0", job.id, largestServerType));
-            } else {
-                Resource firstAvailable = Resource.fromReceivedLine(incoming);
-
-                while (!incoming.equals(".")) {
-                    incoming = scheduler.inquire("OK");
-                }
-                scheduler.inquire(String.format("SCHD %d %s %d", job.id, firstAvailable.type, firstAvailable.id));
-            }
-        }
-    }
-}
-
-
-public class JobScheduler {
+class JobScheduler {
     public JobDispatchPolicy dispatchPolicy;
     public boolean newlines = false;
     public List<ServerType> servers = new ArrayList<>();
@@ -225,7 +42,7 @@ public class JobScheduler {
     }
 
     public static List<ServerType> parseForServerTypes(String filename)
-            throws ParserConfigurationException, FileNotFoundException, SAXException, IOException
+    throws ParserConfigurationException, FileNotFoundException, SAXException, IOException
     {
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
@@ -269,21 +86,19 @@ public class JobScheduler {
     }
 
     public void readSystemXml(String filename)
-            throws ParserConfigurationException, FileNotFoundException,
-                SAXException, IOException
+    throws ParserConfigurationException, FileNotFoundException, SAXException, IOException
     {
         servers.addAll(parseForServerTypes(filename));
     }
 
     public void readSystemXml()
-            throws ParserConfigurationException, FileNotFoundException,
-                SAXException, IOException
+    throws ParserConfigurationException, FileNotFoundException, SAXException, IOException
     {
         readSystemXml("system.xml");
     }
 
     public void run()
-            throws IOException, ParserConfigurationException, SAXException
+    throws IOException, ParserConfigurationException, SAXException
     {
         inquire("HELO");
         inquire("AUTH " + System.getProperty("user.name"));
@@ -293,18 +108,5 @@ public class JobScheduler {
 
         inquire("QUIT");
         close();
-    }
-}
-
-
-class Main {
-    public static void main(String[] args)
-            throws IOException, ParserConfigurationException, SAXException
-    {
-        Set<String> argSet = Set.of(args);
-
-        JobScheduler scheduler = new JobScheduler("127.0.0.1", 50000, new FirstAvailableWithSufficientResources());
-        scheduler.newlines = argSet.contains("-n");
-        scheduler.run();
     }
 }
