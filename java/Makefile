@@ -8,7 +8,7 @@ bin/ds-client.jar: bin/dsclient/*.class
 .PHONY: classes
 classes: bin/dsclient/*.class
 
-bin/dsclient/%.class: src/dsclient/*.java
+bin/dsclient/%.class: $(shell find src/dsclient -name '*.java' -type f)
 	javac -d bin/ $^
 
 .PHONY: clean
