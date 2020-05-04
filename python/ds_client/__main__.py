@@ -8,7 +8,7 @@ if __package__ is None:
     sys.path[0] = op.dirname(sys.path[0])
 
 from .job_scheduler import JobScheduler
-from .job_dispatch_policy import AllToLargest
+from .scheduling_policies import AllToLargest
 
 def main() -> None:
     args = sys.argv[1:]

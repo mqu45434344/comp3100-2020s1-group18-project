@@ -19,7 +19,10 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-class JobScheduler {
+import dsclient.models.ServerType;
+import dsclient.scheduling_policies.AllToLargest;
+
+public class JobScheduler {
     public JobDispatchPolicy dispatchPolicy;
     public boolean newlines = false;
     public List<ServerType> servers = new ArrayList<>();

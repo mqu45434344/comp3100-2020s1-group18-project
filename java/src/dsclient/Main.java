@@ -7,6 +7,8 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.xml.sax.SAXException;
 
+import dsclient.scheduling_policies.AllToLargest;
+
 class Main {
     public static void main(String[] args)
     throws IOException, ParserConfigurationException, SAXException

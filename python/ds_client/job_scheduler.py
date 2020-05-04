@@ -9,7 +9,7 @@ from getpass import getuser
 from xml.etree import ElementTree
 
 from .models import ServerType
-from .job_dispatch_policy import AllToLargest
+from .scheduling_policies import AllToLargest
 
 
 class JobScheduler:
