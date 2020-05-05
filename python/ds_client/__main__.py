@@ -11,6 +11,7 @@ from .job_scheduler import JobScheduler
 from .scheduling_policies import (
     AllToLargest,
     FirstFit,
+    BestFit,
 )
 
 def main() -> None:
@@ -28,6 +29,7 @@ def main() -> None:
     algos = {
         'al': AllToLargest,
         'ff': FirstFit,
+        'bf': BestFit,
     }
     try:
         dispatch_policy = algos[algo]()

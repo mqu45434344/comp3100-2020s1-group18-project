@@ -10,6 +10,7 @@ import org.xml.sax.SAXException;
 
 import dsclient.scheduling_policies.AllToLargest;
 import dsclient.scheduling_policies.FirstFit;
+import dsclient.scheduling_policies.BestFit;
 
 class Main {
     public static void main(String[] args)
@@ -34,6 +35,9 @@ class Main {
                 break;
             case "ff":
                 dispatchPolicy = new FirstFit();
+                break;
+            case "bf":
+                dispatchPolicy = new BestFit();
                 break;
             default:
                 throw new RuntimeException("algorithm not supported");
