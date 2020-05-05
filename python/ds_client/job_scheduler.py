@@ -3,12 +3,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional, List
 if TYPE_CHECKING:
     from .job_dispatch_policy import JobDispatchPolicy
+    from .models import JobSubmission
 
 import socket
 from getpass import getuser
 from xml.etree import ElementTree
 
-from .models import ServerType
+from .models import ServerType, Resource
 from .scheduling_policies import AllToLargest
 
 
@@ -71,3 +72,19 @@ class JobScheduler:
 
         self.inquire("QUIT")
         self.close()
+
+    # High-level API methods #
+
+    def schedule(self, job: JobSubmission, res: Resource) -> None:
+        self.inquire(f"SCHD {job.id} {res.type} {res.id}")
+
+    def fetch_capable_resources(self, job: JobSubmission) -> List[Resource]:
+        self.inquire("RESC Capable {0.core_count} {0.memory} {0.disk}".format(job))
+        resources = []
+        while True:
+            received = self.inquire('OK')
+            if received == '.':
+                break
+            res = Resource.from_received_line(received)
+            resources.append(res)
+        return resources

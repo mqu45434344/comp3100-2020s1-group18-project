@@ -19,6 +19,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import dsclient.models.JobSubmission;
+import dsclient.models.Resource;
 import dsclient.models.ServerType;
 import dsclient.scheduling_policies.AllToLargest;
 
@@ -111,5 +113,25 @@ public class JobScheduler {
 
         inquire("QUIT");
         close();
+    }
+
+    // High-level API methods //
+
+    public void schedule(JobSubmission job, Resource res) throws IOException {
+        inquire(String.format("SCHD %d %s %d", job.id, res.type, res.id));
+    }
+
+    public List<Resource> fetchCapableResources(JobSubmission job) throws IOException {
+        inquire(String.format("RESC Capable %d %d %d", job.coreCount, job.memory, job.disk));
+        List<Resource> resources = new ArrayList<>();
+        while (true) {
+            String received = inquire("OK");
+            if (received.equals(".")) {
+                break;
+            }
+            Resource res = Resource.fromReceivedLine(received);
+            resources.add(res);
+        }
+        return resources;
     }
 }
