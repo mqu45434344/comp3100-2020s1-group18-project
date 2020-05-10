@@ -12,6 +12,7 @@ from .scheduling_policies import (
     AllToLargest,
     FirstFit,
     BestFit,
+    WorstFit,
 )
 
 def main() -> None:
@@ -30,6 +31,7 @@ def main() -> None:
         'al': AllToLargest,
         'ff': FirstFit,
         'bf': BestFit,
+        'wf': WorstFit,
     }
     try:
         dispatch_policy = algos[algo]()
