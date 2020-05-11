@@ -11,7 +11,7 @@
 
 ## Running the demo
 
-### Steps
+### Manual steps
 
 1. Extract the `ds-sim.tar` file (e.g., using `tar xvf ds-sim.tar`).
 
@@ -21,18 +21,25 @@
 
 4. Change the working directory to `ds-sim/` and run `make`
 
-5. Run the server: `./ds-server -c config_simple1.xml &`
+5. Run the server: `./ds-server -c config_simple2.xml &`
 
 6. Run the client: `java -jar ds-client.jar`
 
 ### Command line steps
 
 ```shell
-tar xf ds-sim.tar
-(cd java/ && make)
-cp java/bin/ds-client.jar ds-sim/
-cd ds-sim/
 make
-./ds-server -c config_simple1.xml &
+cd ds-sim/
+
+# Run server (in background)
+./ds-server -c config_simple2.xml &
+
+# Run (java) client
 java -jar ds-client.jar
+
+# Run (python) client
+python3 ds-client.pyz
+
+# Run (python) client (from source)
+python3 -m ds_client
 ```
