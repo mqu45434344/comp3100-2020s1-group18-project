@@ -9,9 +9,8 @@ from ..models import JobSubmission
 
 class FirstFit(JobDispatchPolicy):
     def dispatch(self, scheduler: JobScheduler) -> None:
-        server_types = scheduler.servers.copy()
-        server_types.sort(key=lambda srv: srv.core_count)
-        server_type_order = {srv.type: i for i, srv in enumerate(server_types)}
+        server_types = sorted(scheduler.servers, key=lambda srv: srv.core_count)
+        server_order = {srv.type: i for i, srv in enumerate(server_types)}
 
         while True:
             received = scheduler.inquire('REDY')
@@ -30,7 +29,7 @@ class FirstFit(JobDispatchPolicy):
                 )
             ]
 
-            sufficient.sort(key=lambda res: server_type_order[res.type])
+            sufficient.sort(key=lambda res: server_order[res.type])
             first = (sufficient if sufficient else resources)[0]
 
             scheduler.schedule(job, first)

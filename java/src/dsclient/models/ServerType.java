@@ -11,18 +11,6 @@ public class ServerType {
     public int memory;
     public int disk;
 
-    public static ServerType fromElement(Element el) {
-        return new ServerType(
-            el.getAttribute("type"),
-            Integer.parseInt(el.getAttribute("limit")),
-            Integer.parseInt(el.getAttribute("bootupTime")),
-            Double.parseDouble(el.getAttribute("rate")),
-            Integer.parseInt(el.getAttribute("coreCount")),
-            Integer.parseInt(el.getAttribute("memory")),
-            Integer.parseInt(el.getAttribute("disk"))
-        );
-    }
-
     ServerType(
         String type,
         int limit,
@@ -39,5 +27,17 @@ public class ServerType {
         this.coreCount = coreCount;
         this.memory = memory;
         this.disk = disk;
+    }
+
+    public static ServerType fromElement(Element el) {
+        return new ServerType(
+            el.getAttribute("type"),
+            Integer.parseInt(el.getAttribute("limit")),
+            Integer.parseInt(el.getAttribute("bootupTime")),
+            Double.parseDouble(el.getAttribute("rate")),
+            Integer.parseInt(el.getAttribute("coreCount")),
+            Integer.parseInt(el.getAttribute("memory")),
+            Integer.parseInt(el.getAttribute("disk"))
+        );
     }
 }

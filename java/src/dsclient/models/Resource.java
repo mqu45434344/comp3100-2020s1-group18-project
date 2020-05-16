@@ -9,19 +9,6 @@ public class Resource {
     public int memory;
     public int disk;
 
-    public static Resource fromReceivedLine(String line) {
-        String[] parts = line.split("\\s+");
-        return new Resource(
-            parts[0],
-            Integer.parseInt(parts[1]),
-            Integer.parseInt(parts[2]),
-            Integer.parseInt(parts[3]),
-            Integer.parseInt(parts[4]),
-            Integer.parseInt(parts[5]),
-            Integer.parseInt(parts[6])
-        );
-    }
-
     Resource(
         String type,
         int id,
@@ -38,5 +25,18 @@ public class Resource {
         this.coreCount = coreCount;
         this.memory = memory;
         this.disk = disk;
+    }
+
+    public static Resource fromReceivedLine(String line) {
+        String[] parts = line.split("\\s+");
+        return new Resource(
+            parts[0],
+            Integer.parseInt(parts[1]),
+            Integer.parseInt(parts[2]),
+            Integer.parseInt(parts[3]),
+            Integer.parseInt(parts[4]),
+            Integer.parseInt(parts[5]),
+            Integer.parseInt(parts[6])
+        );
     }
 }

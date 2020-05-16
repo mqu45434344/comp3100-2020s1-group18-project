@@ -26,13 +26,16 @@ class BestFit(JobDispatchPolicy):
                 )
             ]
 
-            best = min(
-                sufficient,
-                key=lambda res: (
-                    res.core_count - job.core_count,
-                    res.available_time,
-                ),
-                default=resources[0]
-            )
+            best = None
+            if sufficient:
+                best = min(
+                    sufficient,
+                    key=lambda res: (
+                        res.core_count - job.core_count,
+                        res.available_time,
+                    ),
+                )
+            else:
+                best = resources[0]
 
             scheduler.schedule(job, best)

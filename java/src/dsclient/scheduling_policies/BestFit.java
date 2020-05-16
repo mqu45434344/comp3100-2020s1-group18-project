@@ -27,10 +27,15 @@ public class BestFit implements JobDispatchPolicy {
                 && res.memory >= job.memory
             ).collect(Collectors.toList());
 
-            Resource best = sufficient.stream().min(
-                Comparator.<Resource>comparingInt(res -> res.coreCount - job.coreCount)
-                        .thenComparingInt(res -> res.availableTime)
-            ).orElse(resources.get(0));
+            Resource best;
+            if (sufficient.isEmpty()) {
+                best = resources.get(0);
+            } else {
+                best = sufficient.stream().min(
+                    Comparator.<Resource>comparingInt(res -> res.coreCount - job.coreCount)
+                            .thenComparingInt(res -> res.availableTime)
+                ).get();
+            }
 
             scheduler.schedule(job, best);
         }

@@ -30,22 +30,20 @@ public class WorstFit implements JobDispatchPolicy {
                 && res.memory >= job.memory
             ).collect(Collectors.toList());
 
-            Resource worst = null;
+            Resource worst;
             if (sufficient.isEmpty()) {
                 List<Resource> reversed = new ArrayList<>(resources);
                 Collections.reverse(reversed);
-                worst = reversed.stream().min(
-                    Comparator.comparingInt(res -> res.id)
-                ).get();
+                worst = reversed.stream().filter(
+                    res -> res.id == 0
+                ).findFirst().get();
             } else {
                 worst = sufficient.stream().max(
                     Comparator.<Resource>comparingInt(
-                            res -> (
-                                    res.state == ServerState.IDLE
-                                    || res.state == ServerState.ACTIVE
-                                ) ? 1 : 0
-                            )
-                            .thenComparingInt(res -> res.coreCount - job.coreCount)
+                        res -> (
+                            res.state == ServerState.IDLE || res.state == ServerState.ACTIVE
+                        ) ? 1 : 0
+                    ).thenComparingInt(res -> res.coreCount - job.coreCount)
                 ).get();
             }
 

@@ -37,9 +37,6 @@ class WorstFit(JobDispatchPolicy):
                     ),
                 )
             else:
-                worst = min(
-                    reversed(resources),
-                    key=lambda res: res.id,
-                )
+                worst = next(res for res in reversed(resources) if res.id == 0)
 
             scheduler.schedule(job, worst)

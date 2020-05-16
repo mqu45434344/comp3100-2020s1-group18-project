@@ -6,8 +6,6 @@ from dataclasses import dataclass
 
 @dataclass
 class ServerType:
-    # system.xml
-
     type: str
     limit: int
     bootup_time: int
@@ -32,8 +30,6 @@ class ServerType:
 
 @dataclass
 class Resource:
-    # RESC
-
     type: str
     id: int
     state: int
@@ -59,8 +55,6 @@ class Resource:
 
 @dataclass
 class JobSubmission:
-    # JOBN
-
     submit_time: int
     id: int
     estimated_runtime: int

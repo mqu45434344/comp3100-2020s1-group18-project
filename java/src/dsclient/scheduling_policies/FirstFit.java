@@ -19,7 +19,7 @@ public class FirstFit implements JobDispatchPolicy {
     public void dispatch(JobScheduler scheduler) throws IOException {
         List<ServerType> serverTypes = new ArrayList<>(scheduler.servers);
         Collections.sort(serverTypes, Comparator.comparingInt(srv -> srv.coreCount));
-        Map<String, Integer> serverTypeOrder = IntStream
+        Map<String, Integer> serverOrder = IntStream
                 .range(0, serverTypes.size())
                 .boxed()
                 .collect(Collectors.<Integer, String, Integer>toMap(
@@ -43,7 +43,7 @@ public class FirstFit implements JobDispatchPolicy {
                 && res.memory >= job.memory
             ).collect(Collectors.toList());
 
-            sufficient.sort(Comparator.comparingInt(res -> serverTypeOrder.get(res.type)));
+            sufficient.sort(Comparator.comparingInt(res -> serverOrder.get(res.type)));
             Resource first = sufficient.isEmpty() ? resources.get(0) : sufficient.get(0);
 
             scheduler.schedule(job, first);

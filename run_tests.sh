@@ -16,7 +16,7 @@ server_prog='./ds-server'
 	exit 1
 }
 
-n_opt=''; (( server_newlines )) && n_opt=-n
+n_opt=; (( server_newlines )) && n_opt=-n
 
 echo "$ref_client_cmd"
 echo "$your_client_cmd"
