@@ -35,7 +35,7 @@ public class JobScheduler {
 
     JobScheduler(String address, int port, JobDispatchPolicy dispatchPolicy) throws IOException {
         sock = new Socket();
-        sock.connect(new InetSocketAddress(address, port), 1000);
+        sock.connect(new InetSocketAddress(address, port), 2000);
         sockOutput = sock.getOutputStream();
         sockInput = sock.getInputStream();
 
@@ -118,7 +118,10 @@ public class JobScheduler {
     // High-level API methods //
 
     public void schedule(JobSubmission job, Resource res) throws IOException {
-        inquire(String.format("SCHD %d %s %d", job.id, res.type, res.id));
+        String recieved = inquire(String.format("SCHD %d %s %d", job.id, res.type, res.id));
+        if (recieved.startsWith("ERR")) {
+            throw new RuntimeException(recieved);
+        }
     }
 
     public List<Resource> fetchCapableResources(JobSubmission job) throws IOException {

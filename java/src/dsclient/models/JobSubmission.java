@@ -1,7 +1,5 @@
 package dsclient.models;
 
-import org.w3c.dom.Element;
-
 public class JobSubmission {
     public int submitTime;
     public int id;

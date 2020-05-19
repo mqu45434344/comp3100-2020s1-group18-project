@@ -31,7 +31,7 @@ class JobScheduler:
     ) -> None:
         self._sock = sock = socket.socket()
         sock.connect((address, port))
-        sock.settimeout(1)
+        sock.settimeout(2)
 
         if dispatch_policy is None:
             dispatch_policy = AllToLargest()
@@ -76,7 +76,9 @@ class JobScheduler:
     # High-level API methods #
 
     def schedule(self, job: JobSubmission, res: Resource) -> None:
-        self.inquire(f"SCHD {job.id} {res.type} {res.id}")
+        recieved = self.inquire(f"SCHD {job.id} {res.type} {res.id}")
+        if recieved.startswith('ERR'):
+            raise Exception(recieved)
 
     def fetch_capable_resources(self, job: JobSubmission) -> List[Resource]:
         self.inquire("RESC Capable {0.core_count} {0.memory} {0.disk}".format(job))
