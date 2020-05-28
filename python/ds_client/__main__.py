@@ -13,6 +13,7 @@ from .scheduling_policies import (
     FirstFit,
     BestFit,
     WorstFit,
+    MinimalCost,
 )
 
 def main() -> None:
@@ -32,6 +33,7 @@ def main() -> None:
         'ff': FirstFit,
         'bf': BestFit,
         'wf': WorstFit,
+        'mc': MinimalCost,
     }
     try:
         dispatch_policy = algos[algo]()
