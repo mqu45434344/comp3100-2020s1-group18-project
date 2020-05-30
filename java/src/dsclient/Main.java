@@ -14,6 +14,7 @@ import dsclient.scheduling_policies.BestFit;
 import dsclient.scheduling_policies.WorstFit;
 import dsclient.scheduling_policies.EvenlySpread;
 import dsclient.scheduling_policies.MinimalCost;
+import dsclient.scheduling_policies.CostEffective;
 
 class Main {
     public static void main(String[] args)
@@ -50,6 +51,9 @@ class Main {
                 break;
             case "mc":
                 dispatchPolicy = new MinimalCost();
+                break;
+            case "ce":
+                dispatchPolicy = new CostEffective();
                 break;
             default:
                 throw new RuntimeException("algorithm not supported");
