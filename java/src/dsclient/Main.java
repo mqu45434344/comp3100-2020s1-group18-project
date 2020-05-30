@@ -12,6 +12,7 @@ import dsclient.scheduling_policies.AllToLargest;
 import dsclient.scheduling_policies.FirstFit;
 import dsclient.scheduling_policies.BestFit;
 import dsclient.scheduling_policies.WorstFit;
+import dsclient.scheduling_policies.CostEffective;
 
 class Main {
     public static void main(String[] args)
@@ -42,6 +43,9 @@ class Main {
                 break;
             case "wf":
                 dispatchPolicy = new WorstFit();
+                break;
+            case "ce":
+                dispatchPolicy = new CostEffective();
                 break;
             default:
                 throw new RuntimeException("algorithm not supported");
