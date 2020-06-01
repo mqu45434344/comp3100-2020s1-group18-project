@@ -5,3 +5,4 @@ from .best_fit import BestFit  # noqa
 from .worst_fit import WorstFit  # noqa
 
 from .evenly_spread import EvenlySpread  # noqa
+from .low_cost import LowCost  # noqa
